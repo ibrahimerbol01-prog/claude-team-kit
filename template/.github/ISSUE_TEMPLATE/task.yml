@@ -1,0 +1,42 @@
+name: Задача
+description: Кусок работы для одного человека на 1–4 часа
+labels: ["type:task", "status:ready"]
+body:
+  - type: dropdown
+    id: role
+    attributes:
+      label: Роль
+      options: [lead, frontend, backend, content, qa, design]
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Что нужно сделать
+      description: Результат, а не процесс. «Кнопка X показывает Y», а не «поработать над X».
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Готово, когда
+      description: Проверяемые условия, по одному на строку.
+      value: |
+        - [ ]
+        - [ ] Проверки проекта проходят
+    validations:
+      required: true
+  - type: input
+    id: area
+    attributes:
+      label: Файлы или папки
+      description: Где, скорее всего, будут изменения. Помогает не пересекаться.
+  - type: dropdown
+    id: size
+    attributes:
+      label: Размер
+      options: ["S — до часа", "M — 1–2 часа", "L — 2–4 часа (лучше разбить)"]
+  - type: textarea
+    id: notes
+    attributes:
+      label: Заметки и ссылки
