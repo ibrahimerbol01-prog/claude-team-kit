@@ -1,0 +1,49 @@
+name: team-checks
+
+# Проверки claude-team-kit на каждый PR: секреты, имя ветки, ссылка на задачу.
+# Проверки самого проекта (сборка, тесты) живут в его собственных workflow.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  secrets:
+    name: Нет секретов
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Нет файлов .env
+        run: |
+          files=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$' || true)
+          if [ -n "$files" ]; then echo "::error::В PR файлы окружения: $files"; exit 1; fi
+
+  rules:
+    name: Ветка и задача
+    runs-on: ubuntu-latest
+    steps:
+      - name: Имя ветки роль/номер-описание
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          if ! printf '%s' "$BRANCH" | grep -Eq '^(lead|frontend|backend|content|qa|design|task)/[0-9]+(-[a-z0-9-]+)?$'; then
+            echo "::error::Ветка '$BRANCH' не по правилу роль/номер-описание. Начинайте работу через scripts/team.sh start <номер>."
+            exit 1
+          fi
+      - name: В описании есть Closes #номер
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if ! printf '%s' "$BODY" | grep -Eiq '(closes|fixes|resolves) #[0-9]+'; then
+            echo "::error::Добавьте в описание PR строку 'Closes #<номер задачи>'."
+            exit 1
+          fi

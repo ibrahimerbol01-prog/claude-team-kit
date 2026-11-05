@@ -1,0 +1,16 @@
+# Кто обязан посмотреть изменения. Последнее совпадение побеждает.
+# Владелец смотрит всё: так ни один PR не попадёт в main без него.
+* @OWNER
+
+# Общие файлы: только через владельца (раскомментируйте нужные для вашего стека).
+# package.json        @OWNER
+# package-lock.json   @OWNER
+# supabase/migrations/ @OWNER
+# .github/            @OWNER
+
+# Зоны ролей: допишите логин участника, чтобы его звали на ревью своей зоны.
+# src/components/     @OWNER @frontend-login
+# api/                @OWNER @backend-login
+# src/data/           @OWNER @content-login
+# test/               @OWNER @qa-login
+# docs/ README.md     @OWNER @design-login
