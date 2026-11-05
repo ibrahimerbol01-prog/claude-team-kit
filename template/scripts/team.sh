@@ -41,7 +41,7 @@ load_conf() {
 
 need() { command -v "$1" >/dev/null 2>&1 || die "Не найдена программа $1. $2"; }
 
-ME="${TEAM_LOGIN:-}"
+ME="${TEAM_LOGIN:-$(git config --get team.login 2>/dev/null || true)}"  # git config team.login ЛОГИН
 my_login() {
   if [ -z "$ME" ]; then ME="$(gh api user --jq .login 2>/dev/null)" || die "gh не авторизован: выполните gh auth login"; fi
   printf '%s' "$ME"
@@ -297,6 +297,7 @@ relay_open() {  # рабочая копия ветки почты в .git/team-r
       git -C "$RD" rm -rq --cached . >/dev/null 2>&1 || true
       find "$RD" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
       mkdir -p "$RD/inbox" "$RD/files"
+      printf '{\n  "git": { "deploymentEnabled": false }\n}\n' > "$RD/vercel.json"  # Vercel/хостинги не собирают ветку почты
       printf '# team-relay\n\nПочта между Claude участников: scripts/team.sh send | inbox | reply.\nНе сливать в main. Ключи сюда не класть.\n' > "$RD/README.md"
       git -C "$RD" add -A
       git -C "$RD" -c user.name="$(git config user.name || echo team)" -c user.email="$(git config user.email || echo team@local)" commit -qm "relay: начало"
@@ -309,7 +310,7 @@ relay_open() {  # рабочая копия ветки почты в .git/team-r
 relay_push() {  # relay_push "сообщение коммита"
   git -C "$RD" add -A
   git -C "$RD" diff --cached --quiet && return 0
-  git -C "$RD" commit -qm "$1"
+  git -C "$RD" -c user.name="$(git config user.name || my_login)" -c user.email="$(git config user.email || echo "$(my_login)@users.noreply.github.com")" commit -qm "$1"
   local i
   for i in 1 2 3; do
     git -C "$RD" push -q -u origin "$RELAY_BRANCH" 2>/dev/null && return 0
@@ -454,7 +455,10 @@ case "$cmd" in
   send|inbox|read|reply|done|get) [ -n "$ME" ] || need gh "Установите GitHub CLI или задайте TEAM_LOGIN=ваш-логин" ;;
   *) need gh "Установите GitHub CLI: https://cli.github.com" ;;
 esac
-load_conf
+case "$cmd" in
+  send|inbox|read|reply|done|get) [ ! -f "$CONF" ] || load_conf ;;  # почте team.conf не обязателен
+  *) load_conf ;;
+esac
 case "$cmd" in
   doctor) cmd_doctor ;;
   setup)  cmd_setup ;;
