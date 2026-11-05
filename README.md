@@ -94,6 +94,12 @@ scripts/team.sh reply ID "Готово" Quiz.tsx                         # ис�
 
 Подробно и со старт-промптами для обоих — `docs/team/RELAY.md`.
 
+## Библиотека навыков
+
+В `library/ecc/` — все 314 навыков Everything Claude Code (MIT, лицензия рядом) с каталогом
+`library/ecc/CATALOG.md`. Это библиотека: ставьте только нужные навыки, не все сразу —
+каждый установленный навык расходует лимиты Claude в каждой сессии.
+
 ## Навыки из Everything Claude Code
 
 По желанию к набору можно добавить навыки из [affaan-m/ECC](https://github.com/affaan-m/ECC)
